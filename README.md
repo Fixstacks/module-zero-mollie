@@ -41,6 +41,8 @@ Part of [`fixstacks/zero`](https://fixstacks.com/zero), which installs the Zero 
    Mollie again; the id must be the order's own payment. Not sent from a
    development site (Mollie refuses webhooks it can't reach); there the
    return updates the order.
+   Handled now or from the queue: Zero Checkout > Payment Webhooks
+   (the Zero_Checkout README).
 
 A payment for another amount or currency than the order's leaves the order
 pending with a comment. **Refunds:** a credit memo from the invoice refunds

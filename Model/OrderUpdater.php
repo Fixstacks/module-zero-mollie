@@ -12,6 +12,7 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\Order;
 use Zero\Checkout\Model\RedirectPayment\OrderPayment;
 use Zero\Checkout\Model\RedirectPayment\ReturnResult;
+use Zero\Checkout\Model\RedirectPayment\WebhookHandlerInterface;
 
 /**
  * Brings an order in line with its Mollie payment, asked from Mollie itself
@@ -23,7 +24,7 @@ use Zero\Checkout\Model\RedirectPayment\ReturnResult;
  * - open: nobody paid yet (NOT_STARTED);
  * - pending: nothing yet.
  */
-class OrderUpdater
+class OrderUpdater implements WebhookHandlerInterface
 {
     public function __construct(
         private readonly Api $api,
@@ -54,6 +55,18 @@ class OrderUpdater
             'open' => ReturnResult::NOT_STARTED,
             default => ReturnResult::PENDING,
         };
+    }
+
+    /**
+     * The verified webhook (now or from the queue): the order brought in line
+     * with the provider's answer. $data is the call itself, kept for the
+     * record; the state is asked, not taken from it.
+     *
+     * @inheritDoc
+     */
+    public function webhook(Order $order, array $data): void
+    {
+        $this->update($order);
     }
 
     /**

@@ -16,14 +16,15 @@ use Magento\Framework\Controller\Result\Raw;
 use Magento\Framework\Controller\Result\RawFactory;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Sales\Model\OrderFactory;
-use Zero\Mollie\Model\OrderUpdater;
 use Zero\Mollie\Model\Payment;
+use Zero\Checkout\Model\RedirectPayment\Webhooks;
 
 /**
  * Mollie's webhook (?order=<increment id>, POST id=tr_…): unsigned by design,
  * it only says that a payment changed. The posted id must be the order's own
- * payment; its state is then asked from Mollie (OrderUpdater), so a forged
- * call can't change anything.
+ * payment; its state is then asked from Mollie (OrderUpdater, now or from the
+ * queue: Zero Checkout > Payment Webhooks), so a forged call can't change
+ * anything.
  *
  * 200 when handled or not ours; 503 when Mollie can't be asked right now, so
  * it calls again.
@@ -34,7 +35,7 @@ class Webhook implements HttpPostActionInterface, CsrfAwareActionInterface
         private readonly RequestInterface $request,
         private readonly RawFactory $rawFactory,
         private readonly OrderFactory $orderFactory,
-        private readonly OrderUpdater $orderUpdater
+        private readonly Webhooks $webhooks
     ) {
     }
 
@@ -52,7 +53,7 @@ class Webhook implements HttpPostActionInterface, CsrfAwareActionInterface
             return $result->setHttpResponseCode(200);
         }
         try {
-            $this->orderUpdater->update($order);
+            $this->webhooks->handle($order, ['id' => (string) $this->request->getParam('id')]);
         } catch (LocalizedException) {
             return $result->setHttpResponseCode(503);
         }
