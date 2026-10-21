@@ -1,4 +1,4 @@
-# fixstacks/module-zero-mollie — licensing
+# zerofront/module-zero-mollie — licensing
 
 Copyright © 2026 Roman Pasichnyk.
 
